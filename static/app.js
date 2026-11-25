@@ -538,7 +538,11 @@ function setData(d){
   d = freshen(d); S.data = d;
   S.events = d.events.map(e => ({...e, _s: fold([e.title, e.venue, e.district, e.cat_label, e.address, e.age_label, e.side ? e.side+' yakasi' : ''].join(' '))}));
 }
+let lastViewKey = '';
 function render(){
+  // görünüm değişince (ilçe, detay, yer, favoriler) panel başa sarılır; mobilde tüm panel kayar
+  const vk = [S.level, S.side, S.district, S.detail?.id, S.placeDetail?.id, S.view, S.venue?.title].join('|');
+  if (vk !== lastViewKey) { lastViewKey = vk; const pi = $('.panel-inner'); if (pi) pi.scrollTop = 0; }
   const list = filtered();
   counts = districtCounts(list);
   updatePins(list); updatePlaces(); renderLegend();
@@ -712,6 +716,7 @@ function renderCrumbs(){
   const t = document.createElement('button'); t.textContent='Türkiye'; t.onclick = () => go({level:'city'}); c.appendChild(t);
   parts.forEach(([l, fn, on]) => { const s = document.createElement('span'); s.className='sep'; s.textContent='›'; c.appendChild(s);
     const b = document.createElement('button'); b.textContent=l; if (on) b.className='on'; b.onclick=fn; c.appendChild(b); });
+  c.scrollLeft = c.scrollWidth; // mobilde yatay kayan satırda son (seçili) adım görünsün
 }
 function foot(){
   const st = S.data.stats, last = S.data.last_scrape ? new Date(S.data.last_scrape).toLocaleString('tr-TR',{dateStyle:'medium',timeStyle:'short'}) : 'bilinmiyor';
@@ -723,7 +728,7 @@ function renderLegend(){
   const pc = {}; S.places.forEach(p => pc[p.cat] = (pc[p.cat]||0)+1);
   // event counts: all other active filters (date, weekend, age, search, area) applied, category toggle ignored
   const ec = {}; S.events.forEach(e => { if (passChips(e, true) && (S.level==='city' || inArea(e))) ec[e.cat_group] = (ec[e.cat_group]||0)+1; });
-  legend.innerHTML = `<div class="lg-h">Etkinlikler <small>(açıp kapatın)</small></div><div class="lg-pl lg-evc">${Object.entries(CAT_NAME).map(([k,l]) => `<label class="${S.catOn.has(k)?'on':''}"><input type="checkbox" data-c="${k}" ${S.catOn.has(k)?'checked':''}>${badge(CAT_ICON[k], CAT_COLOR[k], 18)}<span>${esc(l)}</span><em>${ec[k]||0}</em></label>`).join('')}</div>
+  legend.innerHTML = `<button class="lg-x" data-act="legend-close" aria-label="Katmanları kapat">${ico('x','currentColor',14)}</button><div class="lg-h">Etkinlikler <small>(açıp kapatın)</small></div><div class="lg-pl lg-evc">${Object.entries(CAT_NAME).map(([k,l]) => `<label class="${S.catOn.has(k)?'on':''}"><input type="checkbox" data-c="${k}" ${S.catOn.has(k)?'checked':''}>${badge(CAT_ICON[k], CAT_COLOR[k], 18)}<span>${esc(l)}</span><em>${ec[k]||0}</em></label>`).join('')}</div>
     <div class="lg-h">Yerler <small>(açıp kapatın)</small></div><div class="lg-pl">${PLACE_ORDER.map(k => `<label class="${S.placeOn.has(k)?'on':''}" title="${esc(PLACE[k].desc)}"><input type="checkbox" data-k="${k}" ${S.placeOn.has(k)?'checked':''}>${badge(PLACE[k].icon, PLACE[k].color, 18)}<span>${esc(PLACE[k].label)}</span><em>${pc[k]||0}</em></label>`).join('')}</div>
     <div class="lg-note">Küçük parklar ve oyun alanları yakınlaştırınca görünür.</div>`;
   legend.querySelectorAll('input[data-k]').forEach(i => i.onchange = () => { i.checked ? S.placeOn.add(i.dataset.k) : S.placeOn.delete(i.dataset.k); LS.set('placeLayers', [...S.placeOn]); S.open = {}; render(); });
@@ -818,9 +823,13 @@ function renderFavs(){
   foot();
 }
 function renderTools(){
+  // uzun + kısa etiket: dar ekranda kısa olan görünür (CSS .lf/.ls)
+  const lab = (i, full, short) => `${ico(i,'currentColor',13)}<span class="lf">${full}</span><span class="ls">${short}</span>`;
+  $('#btn-legend').innerHTML = lab('layers', 'Katmanlar', 'Katmanlar'); $('#btn-legend').classList.toggle('on', S.legendOpen); $('#btn-legend').setAttribute('aria-expanded', String(S.legendOpen));
   const n = favCount();
-  $('#btn-fav').innerHTML = `${ico('heart','currentColor',13)} Favorilerim${n?` <b>${n}</b>`:''}`; $('#btn-fav').classList.toggle('on', S.view==='favs');
-  $('#btn-home').innerHTML = `${ico('house','currentColor',13)} ${S.home ? 'Ev: '+esc(S.home.short || S.home.name) : 'Ev seç'}`;
+  $('#btn-fav').innerHTML = lab('heart', 'Favorilerim', 'Favoriler') + (n?`<b>${n}</b>`:''); $('#btn-fav').classList.toggle('on', S.view==='favs');
+  $('#btn-home').innerHTML = lab('house', S.home ? 'Ev: '+esc(S.home.short || S.home.name) : 'Ev seç', S.home ? 'Ev' : 'Ev seç');
+  $('#btn-base').innerHTML = lab('map', 'Sokak altlığı', 'Altlık'); $('#btn-base').classList.toggle('on', S.base);
   $('#btn-home').title = S.home ? `Ev konumu: ${S.home.name}. Değiştirmek için tıklayın.` : 'Uzaklıkları görmek için ev konumunuzu seçin';
 }
 
@@ -923,10 +932,29 @@ function pick(s){ sug.hidden = true; if (s.k.startsWith('İLÇE')||s.k==='YAKA')
 
 /* ---------- tools & refresh ---------- */
 $('#btn-home').onclick = () => openHomeDialog();
+/* ---------- katmanlar (lejant) aç/kapa + mobil alt panel ---------- */
+const MOBILE = window.matchMedia('(max-width:900px)');
+S.legendOpen = MOBILE.matches ? false : LS.get('legend', true);
+function applyLegend(){ document.body.classList.toggle('legend-open', S.legendOpen); document.body.classList.toggle('legend-closed', !S.legendOpen); renderTools(); }
+$('#btn-legend').onclick = () => { S.legendOpen = !S.legendOpen; if (!MOBILE.matches) LS.set('legend', S.legendOpen); applyLegend(); };
+document.addEventListener('click', ev => { if (ev.target.closest('[data-act="legend-close"]')) { S.legendOpen = false; applyLegend(); } });
+function setSheet(full){
+  document.body.classList.toggle('sheet-full', full);
+  const h = $('#sheet-handle'); h.setAttribute('aria-expanded', String(full)); h.setAttribute('aria-label', full ? 'Paneli küçült, haritayı göster' : 'Paneli büyüt');
+  h.querySelector('.sh-t').innerHTML = full ? `${ico('chevron-down','currentColor',13)} Haritayı göster` : `${ico('chevron-up','currentColor',13)} Listeyi büyüt`;
+  if (full && S.legendOpen && MOBILE.matches) { S.legendOpen = false; applyLegend(); }
+}
+$('#sheet-handle').onclick = () => setSheet(!document.body.classList.contains('sheet-full'));
+{ let y0 = null; const hd = $('#sheet-handle');
+  hd.addEventListener('touchstart', ev => { y0 = ev.touches[0].clientY; }, {passive:true});
+  hd.addEventListener('touchend', ev => { if (y0 == null) return; const dy = ev.changedTouches[0].clientY - y0; y0 = null; if (Math.abs(dy) > 30) { ev.preventDefault(); setSheet(dy < 0); } }); }
+setSheet(false); applyLegend();
+// telefonda OSM atfı açık başlayıp alttaki düğmelerin üstüne biniyor: (i) düğmesine kapat (tıklayınca yine açılır)
+map.once('idle', () => { if (MOBILE.matches) document.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show'); });
 $('#btn-fav').onclick = () => { S.view = S.view==='favs' ? null : 'favs'; S.detail = null; S.placeDetail = null; render(); };
 document.addEventListener('click', ev => { const b = ev.target.closest('[data-act="home"]'); if (b) { ev.preventDefault(); openHomeDialog(); } });
 document.addEventListener('keydown', ev => { if (ev.key==='Escape') { if (!$('#homedlg').hidden && LS.get('welcomed', false)) closeHomeDialog(); else if (S.pop) { S.pop=null; render(); } if (S.pickHome) stopPick(); } });
-$('#btn-base').onclick = ev => { S.base=!S.base; map.setLayoutProperty('base','visibility',S.base?'visible':'none'); ev.target.classList.toggle('on',S.base); };
+$('#btn-base').onclick = ev => { S.base=!S.base; map.setLayoutProperty('base','visibility',S.base?'visible':'none'); ev.currentTarget.classList.toggle('on',S.base); };
 setInterval(async () => { try { const d = await getJSON(URLS.events, true); if (d.generated_at !== S.data.generated_at) { const keep = S.detail?.id; setData(d); if (keep) S.detail = S.events.find(e=>e.id===keep)||null; render(); } } catch(_){} }, 10*60*1000);
 window.__home = openHomeDialog; window.__S = S; window.__go = go; window.__open = openDetail; window.__place = openPlace; window.__map = map;
 })();

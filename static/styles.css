@@ -29,7 +29,7 @@ html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-fam
 .crumbs button.on{background:var(--rust);border-color:var(--rust);color:#fff}
 .crumbs .sep{color:var(--mute);font-size:12px}
 
-.map-tools{position:absolute;right:460px;bottom:22px;display:flex;gap:6px}
+.map-tools{position:absolute;right:460px;bottom:40px;display:flex;gap:6px}
 .map-tools button{border:1px solid var(--line);background:var(--paper2);color:var(--ink2);font:600 12px var(--sans);padding:7px 12px;border-radius:999px;cursor:pointer}
 .map-tools button.on{border-color:var(--rust);color:var(--rust)}
 
@@ -132,7 +132,7 @@ html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-fam
 .age3 .n{border-color:#c08a7a;color:#9a4a35;background:#f8ebe5}
 .age3 .u{color:var(--mute);font-style:italic}
 .maplibregl-popup{display:none}
-@media (max-width:900px){#map{right:0;bottom:48%}.panel{top:52%;width:100%}.map-tools{right:20px;bottom:calc(48% + 12px)}.search{width:calc(100% - 40px)}.legend,.brand{display:none}.crumbs{bottom:calc(48% + 12px)}}
+/* mobil düzen: dosyanın sonundaki t49 bölümüne bakın */
 
 .pbadge{display:flex;justify-content:center;margin:4px 0 6px}
 .pbadge .cbadge{box-shadow:0 0 0 2.5px #fffaf0,0 2px 6px rgba(60,40,20,.25)}
@@ -246,3 +246,69 @@ html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-fam
 /* t38: statik sitede açık adres arama düğmesi (Nominatim yalnızca istek üzerine) */
 .hres .hnom{display:flex;align-items:center;gap:6px;width:100%;border:1px dashed var(--line);background:#fff;border-radius:10px;padding:9px 12px;margin-top:6px;cursor:pointer;color:var(--rust);font:600 12.5px var(--sans);text-align:left}
 .hres .hnom small{margin-left:auto;color:var(--mute);font-weight:500;font-size:11px}
+/* ---------- t49: katman aç/kapa + mobil alt panel ---------- */
+.sheet-handle{display:none}
+.lg-x{display:none}
+body.legend-closed .legend{display:none}
+@media (max-width:900px){
+  :root{--sheet:56vh}
+  @supports (height:1dvh){:root{--sheet:56dvh}}
+  #map{right:0;bottom:var(--sheet)}
+  .maplibregl-ctrl-top-right .maplibregl-ctrl-group{display:none} /* telefonda iki parmakla yakınlaştırma */
+  .brand{display:none}
+  .search{left:12px;right:12px;width:auto;top:10px;height:42px}
+  .search kbd{display:none}
+  .crumbs{left:12px;right:12px;top:60px;bottom:auto;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+  .crumbs::-webkit-scrollbar,.map-tools::-webkit-scrollbar,.chips::-webkit-scrollbar{display:none}
+  .crumbs button{flex:none;white-space:nowrap;padding:6px 12px;box-shadow:0 1px 4px rgba(60,40,20,.12)}
+  .crumbs .sep{flex:none}
+  .map-tools{left:12px;right:46px;bottom:calc(var(--sheet) + 8px);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+  .map-tools button{flex:none;white-space:nowrap;padding:6px 11px;box-shadow:0 1px 4px rgba(60,40,20,.12)}
+  .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib{margin:0 6px 8px 0}
+  .legend{display:none;left:12px;right:12px;top:100px;bottom:calc(var(--sheet) + 48px);max-width:none;overflow-y:auto;z-index:6;padding:12px 14px}
+  body.legend-open .legend{display:block}
+  .lg-x{display:flex;position:sticky;top:0;float:right;border:1px solid var(--line);background:var(--paper2);border-radius:999px;width:28px;height:28px;align-items:center;justify-content:center;cursor:pointer;color:var(--ink2);margin:-4px -4px 0 0}
+  .panel{top:auto;left:0;right:0;bottom:0;width:auto;height:var(--sheet);padding:0;z-index:4;transition:height .25s ease}
+  body.sheet-full .panel{height:calc(100% - 6px)}
+  .panel-inner{border-radius:16px 16px 0 0;outline:0;border-bottom:0;overflow-y:auto;overscroll-behavior:contain;box-shadow:0 -6px 22px rgba(60,40,20,.16)}
+  .sheet-handle{display:flex;flex-direction:column;align-items:center;gap:3px;position:sticky;top:0;z-index:3;width:100%;flex:none;border:0;background:var(--paper2);padding:7px 0 5px;cursor:pointer;color:var(--mute);font:600 11px var(--sans);border-bottom:1px solid var(--rule)}
+  .sheet-handle .grab{width:42px;height:4px;border-radius:4px;background:#cdbda3}
+  .sheet-handle .sh-t{display:inline-flex;align-items:center;gap:4px}
+  .panel-head{padding:6px 14px 2px}
+  .panel-head .kicker{font-size:9.5px;letter-spacing:.26em}
+  .ptitle{font-size:28px;margin:2px 0}
+  .ptitle.small{font-size:24px}
+  .dhead .ptitle{font-size:22px}
+  .psub{font-size:12px}
+  .diam{display:none}
+  .back{position:static;display:block;text-align:left;margin:0 0 2px -4px;padding:4px}
+  .pbadge{margin:0 0 4px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding:6px 14px 4px;scrollbar-width:none;flex:none}
+  .chip{flex:none;white-space:nowrap}
+  .pop{margin:6px 12px 4px;flex:none}
+  .toolbar{padding:6px 14px 2px;flex-wrap:wrap;gap:2px 8px;flex:none}
+  .panel-body{flex:none;overflow:visible;padding:4px 14px 14px}
+  .panel-foot{flex:none;padding:8px 12px}
+  .pickbar{transform:translateX(-50%);top:104px;max-width:calc(100% - 24px)}
+}
+/* t49: dar masaüstü penceresi — alt satırda yer kalmayınca araç düğmeleri arama kutusunun altına */
+@media (min-width:901px) and (max-width:1380px){
+  .map-tools{top:74px;bottom:auto;left:20px;right:auto;flex-wrap:wrap;max-width:calc(100% - 520px)}
+  .map-tools button{box-shadow:0 1px 4px rgba(60,40,20,.10)}
+}
+/* ---------- t50: araç satırı ve filtre çipleri kırpılmadan sarılır ---------- */
+.map-tools button{display:inline-flex;align-items:center;gap:5px}
+.map-tools button .ls{display:none}
+@media (max-width:900px){
+  .map-tools{flex-wrap:wrap-reverse;overflow:visible;gap:5px;right:44px}
+  .map-tools button{padding:6px 10px;font-size:11.5px}
+  .map-tools button .lf{display:none}
+  .map-tools button .ls{display:inline}
+  .chips{flex-wrap:wrap;overflow:visible;justify-content:flex-start;gap:5px;padding:6px 12px 4px}
+  .chip{padding:5px 10px;font-size:11.5px}
+  .chip small{font-size:10px}
+}
+@media (min-width:600px) and (max-width:900px){
+  .map-tools button .lf{display:inline}
+  .map-tools button .ls{display:none}
+}
