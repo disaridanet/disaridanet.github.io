@@ -1,0 +1,16 @@
+Dışarıda — Şehirde ne var?  (https://disaridanet.github.io)
+
+Veriler: etkinlikler kaynak sitelerden (belediyeler, İBB, bilet siteleri, müzeler, AVM'ler) toplanır;
+her etkinlikte kaynak bağlantısı vardır. Kaynakta olmayan bilgi "Bilgi bulunamadı" olarak gösterilir.
+
+Atıf ve lisanslar
+- Harita altlığı, ilçe sınırları, yerler ve adres arama: © OpenStreetMap katkıcıları, ODbL 1.0
+  https://www.openstreetmap.org/copyright  (adres arama: Nominatim, https://nominatim.org)
+- Harita kütüphanesi: MapLibre GL JS, BSD-3-Clause  https://maplibre.org
+- Simgeler: Lucide, ISC lisansı  https://lucide.dev  (static/vendor/LUCIDE-LICENSE.txt)
+- Yazı tipleri: Inter ve Cormorant Garamond, SIL Open Font License 1.1
+- Harita yazı tipi glifleri: demotiles.maplibre.org
+
+Gizlilik: ev konumu, favoriler ve tercihler yalnızca ziyaretçinin tarayıcısında (localStorage) saklanır;
+siteye veya başka bir sunucuya gönderilmez. Adres aramasında yazılan metin yalnızca kullanıcı
+"adres ara" dediğinde OpenStreetMap Nominatim'e gönderilir.
