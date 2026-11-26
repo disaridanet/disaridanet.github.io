@@ -96,7 +96,7 @@ const AYLAR = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Ka
 const GUN = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
 
 const S = {home:LS.get('home', null), age:Object.assign({groups:[], kids:[], hideUnknown:false, showAdult:false, showUnclear:true}, LS.get('age', {})), date:null, pop:null, cal:null, favs:Object.assign({e:{}, p:{}}, LS.get('favs', {})), view:null, pickHome:false,
-  catOn:new Set(LS.get('cats', null) || Object.keys(CAT_NAME)), places:[], placeOn:new Set(LS.get('placeLayers', null) || PLACE_ORDER), placeDetail:null, data:null, events:[], level:'city', side:null, district:null, venue:null, detail:null, filters:new Set(), q:'', sort:'date', chipsOpen:false, open:{}};
+  catOn:new Set(LS.get('cats', null) || Object.keys(CAT_NAME)), places:[], placeOn:new Set(LS.get('placeLayers', null) || PLACE_ORDER), placeDetail:null, data:null, events:[], level:'city', side:null, district:null, venue:null, detail:null, filters:new Set(), q:'', sort:'date', chipsOpen:false, open:{}, mapFs:false};
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fold = s => String(s||'').replace(/İ/g,'i').replace(/I/g,'ı').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
@@ -557,7 +557,7 @@ function render(){
   Object.entries(sideMarkers).forEach(([k,s]) => s.el.querySelector('.s').textContent = `${counts.s[k]||0} ETKİNLİK`);
   renderCrumbs(); renderChips();
   $('#chips').style.display = (S.detail || S.placeDetail || S.view==='favs') ? 'none' : '';
-  renderPop(); renderTools();
+  renderPop(); renderTools(); applyFsDetail();
   if (S.detail) return renderDetail(S.detail);
   if (S.placeDetail) return renderPlace(S.placeDetail);
   if (S.view === 'favs') return renderFavs();
@@ -838,6 +838,13 @@ function renderTools(){
   $('#btn-fav').innerHTML = lab('heart', 'Favorilerim', 'Favoriler') + (n?`<b>${n}</b>`:''); $('#btn-fav').classList.toggle('on', S.view==='favs');
   $('#btn-home').innerHTML = lab('house', S.home ? 'Ev: '+esc(S.home.short || S.home.name) : 'Ev seç', S.home ? 'Ev' : 'Ev seç');
   $('#btn-home').title = S.home ? `Ev konumu: ${S.home.name}. Değiştirmek için tıklayın.` : 'Uzaklıkları görmek için ev konumunuzu seçin';
+  const fsOn = !!S.mapFs, fsLab = fsOn ? 'Tam ekrandan çık' : 'Tam ekran';
+  const fsBtn = $('#btn-fs');
+  if (fsBtn) {
+    fsBtn.innerHTML = `${ico(fsOn ? 'minimize-2' : 'maximize-2','currentColor',16)}<span class="lf">${fsLab}</span>`;
+    fsBtn.title = fsLab; fsBtn.setAttribute('aria-label', fsLab); fsBtn.setAttribute('aria-pressed', String(fsOn));
+    fsBtn.classList.toggle('on', fsOn);
+  }
 }
 
 /* ---------- home location ---------- */
@@ -916,14 +923,16 @@ const q = $('#q'), sug = $('#suggest'); let sugItems = [], sugIdx = -1, tmr;
 document.addEventListener('keydown', ev => { if (ev.key==='/' && document.activeElement!==q) { ev.preventDefault(); q.focus(); } });
 q.addEventListener('input', () => { clearTimeout(tmr); tmr = setTimeout(() => { S.q = q.value.trim(); S.detail=null; render(); suggest(); }, 160); });
 q.addEventListener('keydown', ev => {
-  if (ev.key==='Escape') { q.value=''; S.q=''; sug.hidden=true; render(); q.blur(); }
+  if (ev.key==='Escape') { q.value=''; S.q=''; hideSug(); render(); q.blur(); }
   if (ev.key==='ArrowDown'||ev.key==='ArrowUp') { ev.preventDefault(); sugIdx = Math.max(0, Math.min(sugItems.length-1, sugIdx + (ev.key==='ArrowDown'?1:-1))); paintSug(); }
   if (ev.key==='Enter' && sugItems.length) { pick(sugItems[Math.max(0,sugIdx)]); }
 });
-q.addEventListener('blur', () => setTimeout(() => sug.hidden = true, 150));
+q.addEventListener('blur', () => setTimeout(hideSug, 150));
+function hideSug(){ sug.hidden = true; syncSugOpen(); }
+function syncSugOpen(){ document.body.classList.toggle('suggest-open', !sug.hidden); }
 function suggest(){
   const v = fold(q.value.trim()); sugItems = []; sugIdx = -1;
-  if (!v) { sug.hidden = true; return; }
+  if (!v) { hideSug(); return; }
   ['Anadolu','Avrupa'].forEach(s => fold(s+' yakasi').includes(v) && sugItems.push({t:s+' Yakası', k:'YAKA', a:()=>go({level:'side', side:s})}));
   districtFC.features.filter(f => fold(f.properties.name).includes(v)).slice(0,5).forEach(f => sugItems.push({t:f.properties.name, k:'İLÇE · '+(counts.c[f.properties.name]||0), a:()=>go({level:'district', district:f.properties.name, side:f.properties.side})}));
   S.events.filter(e => fold(e.title).includes(v) && passChips(e)).slice(0,6).forEach(e => sugItems.push({t:e.title, k:dshort(e.start_date), a:()=>openDetail(e.id)}));
@@ -932,10 +941,11 @@ function suggest(){
 }
 function paintSug(){
   sug.hidden = !sugItems.length;
+  syncSugOpen();
   sug.innerHTML = sugItems.map((s,i) => `<button class="${i===sugIdx?'on':''}" data-i="${i}"><span>${esc(s.t)}</span><small>${esc(s.k)}</small></button>`).join('');
   sug.querySelectorAll('button').forEach(b => b.onmousedown = ev => { ev.preventDefault(); pick(sugItems[+b.dataset.i]); });
 }
-function pick(s){ sug.hidden = true; if (s.k.startsWith('İLÇE')||s.k==='YAKA') { q.value=''; S.q=''; } s.a(); }
+function pick(s){ hideSug(); if (s.k.startsWith('İLÇE')||s.k==='YAKA') { q.value=''; S.q=''; } s.a(); }
 
 /* ---------- tools & refresh ---------- */
 $('#btn-home').onclick = () => openHomeDialog();
@@ -960,7 +970,64 @@ setSheet(false); applyLegend();
 map.once('idle', () => { if (MOBILE.matches) document.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show'); });
 $('#btn-fav').onclick = () => { S.view = S.view==='favs' ? null : 'favs'; S.detail = null; S.placeDetail = null; render(); };
 document.addEventListener('click', ev => { const b = ev.target.closest('[data-act="home"]'); if (b) { ev.preventDefault(); openHomeDialog(); } });
-document.addEventListener('keydown', ev => { if (ev.key==='Escape') { if (!$('#homedlg').hidden && LS.get('welcomed', false)) closeHomeDialog(); else if (S.pop) { S.pop=null; render(); } if (S.pickHome) stopPick(); } });
+document.addEventListener('keydown', ev => { if (ev.key==='Escape') {
+  if (!$('#homedlg').hidden && LS.get('welcomed', false)) closeHomeDialog();
+  else if (S.pop) { S.pop=null; render(); }
+  else if (S.pickHome) stopPick();
+  else if (S.mapFs && (S.detail || S.placeDetail || S.venue)) {
+    S.detail=null; S.placeDetail=null; S.venue=null;
+    if (selMarker){ selMarker.remove(); selMarker=null; }
+    render();
+  } else if (S.mapFs) setMapFs(false);
+} });
+
+function browserFsEl(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+function resizeMap(){ try { map.resize(); } catch(_){} }
+let _fsLegend = null;
+function applyFsDetail(){
+  document.body.classList.toggle('fs-detail', !!(S.mapFs && (S.detail || S.placeDetail || S.venue)));
+}
+async function setMapFs(on){
+  on = !!on;
+  if (on === S.mapFs) {
+    if (!on && browserFsEl()) {
+      try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(_){}
+    }
+    return;
+  }
+  if (on) {
+    _fsLegend = S.legendOpen;
+    if (S.legendOpen) { S.legendOpen = false; applyLegend(); }
+    if (S.pop) { S.pop = null; render(); }
+    if (S.pickHome) stopPick();
+    if (document.body.classList.contains('sheet-full')) setSheet(false);
+  } else if (_fsLegend != null) {
+    S.legendOpen = _fsLegend; _fsLegend = null; applyLegend();
+  }
+  S.mapFs = on;
+  document.body.classList.toggle('map-fs', on);
+  applyFsDetail();
+  renderTools();
+  resizeMap();
+  requestAnimationFrame(resizeMap);
+  try {
+    if (on) {
+      const el = document.documentElement;
+      if (!browserFsEl()) {
+        if (el.requestFullscreen) await el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+      }
+    } else if (browserFsEl()) {
+      if (document.exitFullscreen) await document.exitFullscreen();
+      else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+    }
+  } catch(_){ /* iOS Safari ve bazı PWA'lar Fullscreen API desteklemez; CSS modu yeter */ }
+  resizeMap();
+  setTimeout(resizeMap, 120);
+}
+document.addEventListener('fullscreenchange', () => { if (!browserFsEl() && S.mapFs) setMapFs(false); else if (S.mapFs) resizeMap(); });
+document.addEventListener('webkitfullscreenchange', () => { if (!browserFsEl() && S.mapFs) setMapFs(false); else if (S.mapFs) resizeMap(); });
+$('#btn-fs').onclick = () => { setMapFs(!S.mapFs); };
 setInterval(async () => { try { const d = await getJSON(URLS.events, true); if (d.generated_at !== S.data.generated_at) { const keep = S.detail?.id; setData(d); if (keep) S.detail = S.events.find(e=>e.id===keep)||null; render(); } } catch(_){} }, 10*60*1000);
-window.__home = openHomeDialog; window.__S = S; window.__go = go; window.__open = openDetail; window.__place = openPlace; window.__map = map;
+window.__home = openHomeDialog; window.__S = S; window.__go = go; window.__open = openDetail; window.__place = openPlace; window.__map = map; window.__setMapFs = setMapFs;
 })();
