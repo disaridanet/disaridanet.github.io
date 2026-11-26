@@ -37,6 +37,7 @@ const AGE_GROUPS = [['g0','0–2 yaş',0,2.99],['g3','3–5 yaş',3,5.99],['g6',
 const AYLAR_UZUN = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 const LS = { get(k, d){ try { const v = localStorage.getItem('radar.'+k); return v ? JSON.parse(v) : d; } catch(_) { return d; } },
              set(k, v){ try { v == null ? localStorage.removeItem('radar.'+k) : localStorage.setItem('radar.'+k, JSON.stringify(v)); } catch(_){} } };
+LS.set('base', null);  // eski 'sokak altlığı kapalı' tercihi artık yok; altlık her zaman açık
 const CATCHIPS = ['tiyatro','atolye','muze','spor'];
 /* ---------- veri kaynağı: yerel sunucu ya da statik dosyalar ---------- */
 const STATIC = document.querySelector('meta[name="disarida-static"]')?.content === '1';
@@ -95,7 +96,7 @@ const AYLAR = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Ka
 const GUN = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
 
 const S = {home:LS.get('home', null), age:Object.assign({groups:[], kids:[], hideUnknown:false, showAdult:false, showUnclear:true}, LS.get('age', {})), date:null, pop:null, cal:null, favs:Object.assign({e:{}, p:{}}, LS.get('favs', {})), view:null, pickHome:false,
-  catOn:new Set(LS.get('cats', null) || Object.keys(CAT_NAME)), places:[], placeOn:new Set(LS.get('placeLayers', null) || PLACE_ORDER), placeDetail:null, data:null, events:[], level:'city', side:null, district:null, venue:null, detail:null, filters:new Set(), q:'', sort:'date', chipsOpen:false, open:{}, base:true};
+  catOn:new Set(LS.get('cats', null) || Object.keys(CAT_NAME)), places:[], placeOn:new Set(LS.get('placeLayers', null) || PLACE_ORDER), placeDetail:null, data:null, events:[], level:'city', side:null, district:null, venue:null, detail:null, filters:new Set(), q:'', sort:'date', chipsOpen:false, open:{}};
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fold = s => String(s||'').replace(/İ/g,'i').replace(/I/g,'ı').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
@@ -302,6 +303,7 @@ const PL_LAYERS = ['pl-0','pl-10','pl-11','pl-12','pl-13','pl-14'];
 const CITY_B = [[28.0,40.80],[29.95,41.60]];
 
 map.on('load', async () => {
+  map.setLayoutProperty('base','visibility','visible');
   let sides;
   try {
     const [dj, sj, ej, pj] = await Promise.all([getJSON(URLS.districts), getJSON(URLS.sides), getJSON(URLS.events, true), getJSON(URLS.places, true)]);
@@ -835,7 +837,6 @@ function renderTools(){
   const n = favCount();
   $('#btn-fav').innerHTML = lab('heart', 'Favorilerim', 'Favoriler') + (n?`<b>${n}</b>`:''); $('#btn-fav').classList.toggle('on', S.view==='favs');
   $('#btn-home').innerHTML = lab('house', S.home ? 'Ev: '+esc(S.home.short || S.home.name) : 'Ev seç', S.home ? 'Ev' : 'Ev seç');
-  $('#btn-base').innerHTML = lab('map', 'Sokak altlığı', 'Altlık'); $('#btn-base').classList.toggle('on', S.base);
   $('#btn-home').title = S.home ? `Ev konumu: ${S.home.name}. Değiştirmek için tıklayın.` : 'Uzaklıkları görmek için ev konumunuzu seçin';
 }
 
@@ -960,7 +961,6 @@ map.once('idle', () => { if (MOBILE.matches) document.querySelector('.maplibregl
 $('#btn-fav').onclick = () => { S.view = S.view==='favs' ? null : 'favs'; S.detail = null; S.placeDetail = null; render(); };
 document.addEventListener('click', ev => { const b = ev.target.closest('[data-act="home"]'); if (b) { ev.preventDefault(); openHomeDialog(); } });
 document.addEventListener('keydown', ev => { if (ev.key==='Escape') { if (!$('#homedlg').hidden && LS.get('welcomed', false)) closeHomeDialog(); else if (S.pop) { S.pop=null; render(); } if (S.pickHome) stopPick(); } });
-$('#btn-base').onclick = ev => { S.base=!S.base; map.setLayoutProperty('base','visibility',S.base?'visible':'none'); ev.currentTarget.classList.toggle('on',S.base); };
 setInterval(async () => { try { const d = await getJSON(URLS.events, true); if (d.generated_at !== S.data.generated_at) { const keep = S.detail?.id; setData(d); if (keep) S.detail = S.events.find(e=>e.id===keep)||null; render(); } } catch(_){} }, 10*60*1000);
 window.__home = openHomeDialog; window.__S = S; window.__go = go; window.__open = openDetail; window.__place = openPlace; window.__map = map;
 })();
