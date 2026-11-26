@@ -504,17 +504,23 @@ function renderPlace(p){
   const web = p.website ? `<a href="${esc(/^https?:/.test(p.website)?p.website:'https://'+p.website)}" target="_blank" rel="noopener">${esc(p.website.replace(/^https?:\/\//,'').replace(/\/$/,''))}</a>` : UNK;
   const src = p.source_url ? `<a href="${esc(p.source_url)}" target="_blank" rel="noopener">${esc(p.source)}</a>` : esc(p.source||UNK);
   const oh = p.opening_hours ? esc(p.opening_hours) : UNK;
-  const fee = p.fee==='yes' ? 'Ücretli' : p.fee==='no' ? 'Ücretsiz' : UNK;
+  const fee = p.fee==='yes' ? 'Ücretli' : p.fee==='no' ? 'Ücretsiz' : (p.fee ? esc(p.fee) : UNK);
+  const desc = p.description ? `<p class="desc">${esc(p.description)}</p>` : '';
+  const note = p.notes ? `<p class="psub" style="margin-top:6px">${esc(p.notes)}</p>` : '';
   $('#panel-body').innerHTML = `
+    ${desc}
     <table class="facts">
       <tr><th>Tür</th><td>${esc((p.subtypes||[]).join(', ') || P.short)}<small>Harita katmanı: ${esc(P.label)}</small></td></tr>
       <tr><th>İlçe</th><td>${p.district?esc(p.district):UNK}</td></tr>
+      <tr><th>Adres</th><td>${p.address?esc(p.address):UNK}</td></tr>
       <tr><th>Evime uzaklık</th><td>${km}</td></tr>
       <tr><th>Web sitesi</th><td>${web}</td></tr>
-      <tr><th>Açılış saatleri</th><td>${oh}${p.opening_hours?'<small>OpenStreetMap kaydına göre; gitmeden önce teyit edin.</small>':''}</td></tr>
+      <tr><th>Açılış saatleri</th><td>${oh}${p.opening_hours?'<small>Kaynak kaydına göre; gitmeden önce teyit edin.</small>':''}</td></tr>
       <tr><th>Giriş</th><td>${fee}</td></tr>
+      <tr><th>Yaş</th><td>${p.age_label?esc(p.age_label):UNK}</td></tr>
       <tr><th>Kaynak</th><td>${src}${p.from_events?'<small>Bu nokta yaklaşan açık hava etkinliklerinin mekanından oluşturuldu.</small>':''}</td></tr>
     </table>
+    ${note}
     <div class="links">
       <a class="btn fill" href="${esc(p.gmaps)}" target="_blank" rel="noopener">Google Haritalar'da aç</a>
       <a class="btn" href="${esc(gm(p,'driving'))}" target="_blank" rel="noopener">Yol tarifi · araba</a>
