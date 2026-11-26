@@ -1,4 +1,4 @@
-Dışarıda — Şehirde ne var?  (https://disaridanet.github.io)
+Dışarıda — Şehirde ne var?  (https://disarida.net)
 
 Veriler: etkinlikler kaynak sitelerden (belediyeler, İBB, bilet siteleri, müzeler, AVM'ler) toplanır;
 her etkinlikte kaynak bağlantısı vardır. Kaynakta olmayan bilgi "Bilgi bulunamadı" olarak gösterilir.
