@@ -6,7 +6,6 @@
 <title>Dışarıda — Şehirde ne var?</title>
 <meta name="disarida-static" content="1">
 <meta name="description" content="İstanbul'da yaklaşan etkinlikler ve gidilecek yerler haritada: tiyatro, atölye, konser, müze, park ve daha fazlası. Bilgiler kaynaklarından, bağlantılarıyla.">
-<meta name="theme-color" content="#b0502a">
 <link rel="canonical" href="https://disarida.net/">
 <link rel="icon" href="static/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="static/apple-touch-icon.png">
@@ -21,6 +20,12 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://disarida.net/static/og.png">
+<meta name="theme-color" content="#b0502a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Dışarıda">
+<link rel="manifest" href="/manifest.webmanifest">
 <link rel="stylesheet" href="static/vendor/fonts/fonts.css">
 <link rel="stylesheet" href="static/vendor/maplibre-gl.css">
 <link rel="stylesheet" href="static/styles.css?v=c1de85ddf5">
@@ -66,5 +71,12 @@
 <script src="static/vendor/maplibre-gl.js"></script>
 <script src="static/icons.js?v=ca95f86c2d"></script>
 <script src="static/app.js?v=e1ed06a4b1"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function () {});
+  });
+}
+</script>
 </body>
 </html>
