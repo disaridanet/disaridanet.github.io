@@ -9,13 +9,24 @@
 /* ana ekran girişi: harita araç çubuğu */
 #btn-ucretsiz{color:var(--free);border-color:#c5d4bb}
 #btn-ucretsiz:hover,#btn-ucretsiz:focus-visible{border-color:var(--free);color:#2f5a22}
+/* mobilde de uzun etiket — paneldeki "Ücretsiz" filtresiyle karışmasın */
+.map-tools button#btn-ucretsiz .lf{display:inline}
+.map-tools button#btn-ucretsiz .ls{display:none}
 
-/* vitrin başlığındaki metin bağlantısı */
+/* vitrin girişi: kendi satırında, dokunulabilir hap (Plan yap'ın altında kalmasın) */
+.vt-ucretsiz-row{flex:1 0 100%;display:flex;align-items:center;margin-top:6px;position:relative;z-index:2}
 .vt-ucretsiz{margin-left:auto;border:0;background:none;padding:0;cursor:pointer;
   font:600 12px/1.2 var(--sans);color:var(--free);white-space:nowrap}
 .vt-ucretsiz:hover,.vt-ucretsiz:focus-visible{color:#2f5a22;text-decoration:underline;text-underline-offset:3px}
 @media (max-width:900px){
-  .vt-ucretsiz{flex:0 0 auto;margin:4px 0 0;font-size:11.5px}
+  /* yeni satır şeridi yukarı taşırıp Plan yap / kapat'ı aramanın altına itmesin */
+  .vitrin:has(.vt-ucretsiz-row) .vt-kick{display:none}
+  .vitrin:has(.vt-ucretsiz-row){--ph:clamp(92px,13.5vh,118px)}
+  .vt-ucretsiz-row{margin-top:4px}
+  .vt-ucretsiz{margin:0;padding:6px 12px;min-height:34px;display:inline-flex;align-items:center;
+    font-size:13px;border:1px solid #c5d4bb;border-radius:999px;background:#fffdf6;
+    box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  .vt-ucretsiz:hover,.vt-ucretsiz:focus-visible{text-decoration:none;border-color:var(--free);color:#2f5a22}
 }
 
 /* ---- katman ---- */

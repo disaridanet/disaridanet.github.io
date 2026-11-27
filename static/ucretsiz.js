@@ -274,6 +274,8 @@ async function doShare(title, dates, n){
 function injectVitrinLink(){
   const head = $('.vt-head');
   if (!head || head.querySelector('#vt-ucretsiz')) return;
+  let row = head.querySelector('.vt-ucretsiz-row');
+  if (!row) { row = document.createElement('div'); row.className = 'vt-ucretsiz-row'; head.appendChild(row); }
   const b = document.createElement('button');
   b.type = 'button';
   b.id = 'vt-ucretsiz';
@@ -281,7 +283,7 @@ function injectVitrinLink(){
   b.textContent = 'Ücretsiz hafta sonu →';
   b.title = 'Ücretsiz bu hafta sonu etkinlikleri';
   b.addEventListener('click', ev => { ev.preventDefault(); ev.stopPropagation(); open(); });
-  head.appendChild(b);
+  row.appendChild(b);
 }
 
 function bindChrome(){

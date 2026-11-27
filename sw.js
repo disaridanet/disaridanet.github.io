@@ -3,7 +3,7 @@
    Sayfalar ve veri JSON/API: network-first (güncel veri öncelikli, offline'da cache)
    Harita karoları (OSM) ve Nominatim: cache'lenmez
 */
-const VERSION = 'disarida-pwa-v13';
+const VERSION = 'disarida-pwa-v14';
 const SHELL = VERSION + '-shell';
 const DATA = VERSION + '-data';
 
