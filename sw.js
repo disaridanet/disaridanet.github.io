@@ -3,7 +3,7 @@
    Sayfalar ve veri JSON/API: network-first (güncel veri öncelikli, offline'da cache)
    Harita karoları (OSM) ve Nominatim: cache'lenmez
 */
-const VERSION = 'disarida-pwa-v7';
+const VERSION = 'disarida-pwa-v13';
 const SHELL = VERSION + '-shell';
 const DATA = VERSION + '-data';
 
@@ -18,6 +18,14 @@ const PRECACHE = [
   '/static/styles.css',
   '/static/app.js',
   '/static/icons.js',
+  '/static/paylas.css',
+  '/static/paylas.js',
+  '/static/ucretsiz.css',
+  '/static/ucretsiz.js',
+  '/static/yorumlar.css',
+  '/static/yorumlar.js',
+  '/static/planlayici.css',
+  '/static/planlayici.js',
   '/static/vendor/maplibre-gl.js',
   '/static/vendor/maplibre-gl.css',
   '/static/vendor/fonts/fonts.css'
@@ -94,7 +102,7 @@ self.addEventListener('fetch', (event) => {
   const dest = new URL(url).pathname;
   if (dest === '/sw.js') return;
 
-  if (req.mode === 'navigate' || dest === '/' || dest === '/index.html' || dest === '/404.html' || isData(url)) {
+  if (req.mode === 'navigate' || dest === '/' || dest === '/index.html' || dest === '/404.html' || dest === '/ucretsiz' || dest === '/ucretsiz/' || isData(url)) {
     event.respondWith(networkFirst(req, DATA));
     return;
   }

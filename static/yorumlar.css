@@ -1,0 +1,31 @@
+/* Dışarıda — veli yorumları (puan/yıldız yok) */
+.yorumlar{margin:24px 0 8px;padding-top:14px;border-top:1px solid var(--rule,#d9ccb6);overflow-anchor:none}
+.yorumlar .yr-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.yorumlar h2{font-family:var(--serif);font-style:italic;font-weight:600;font-size:26px;line-height:1.1;margin:0;color:var(--ink)}
+.yr-ozet{font-size:13px;color:var(--ink2)}
+.yr-alt{margin:4px 0 10px;font-size:12.5px;color:var(--mute)}
+.yr-liste{display:flex;flex-direction:column;gap:8px}
+.yr-kart{background:var(--paper2,#faf4e8);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.yr-ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.yr-etiket{font:600 11px var(--sans);color:var(--rust-d,#8e3b1c);background:#f1dfcc;border-radius:999px;padding:2px 8px}
+.yr-metin{margin:6px 0 4px;font-family:var(--serif);font-size:17px;line-height:1.35;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.yr-kim{font-size:12px;color:var(--mute)}
+.yr-bos,.yr-not{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--mute);margin:4px 0}
+.yr-form-yer{margin-top:12px}
+.yr-ac,.yr-gonder{cursor:pointer;border:0;background:var(--rust);color:#fff;font:600 13px var(--sans);padding:11px 18px;border-radius:999px;min-height:42px}
+.yr-ac{background:#fff;color:var(--rust);border:1px solid var(--rust)}
+.yr-gonder:disabled{opacity:.6;cursor:default}
+.yr-form{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;overflow-anchor:none}
+.yr-lbl{display:block;font:600 12px var(--sans);color:var(--ink2);margin:4px 0 4px}
+.yr-form textarea,.yr-form select,.yr-form input[name=ad]{width:100%;box-sizing:border-box;font:16px var(--sans);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--paper2,#faf4e8)}
+.yr-form textarea{resize:vertical;min-height:76px}
+.yr-sayac{text-align:right;font-size:11px;color:var(--mute);margin-top:2px}
+.yr-satir{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 10px}
+.yr-satir label{display:flex;flex-direction:column;gap:4px;font:600 12px var(--sans);color:var(--ink2)}
+.yr-satir small{font-weight:400;color:var(--mute)}
+.yr-ts{min-height:65px;margin:4px 0}
+.yr-hata{color:#9b2c1c;font-size:13px;min-height:1em;margin:4px 0}
+.yr-aydinlatma{font-size:11px;line-height:1.45;color:var(--mute);margin:10px 0 0}
+.yr-aydinlatma a{color:var(--rust)}
+.yr-tamam{background:#e6f0e4;border:1px solid #b9d3b4;color:#24502c;border-radius:10px;padding:12px;font-size:14px}
+@media (max-width:420px){.yr-satir{grid-template-columns:1fr}}

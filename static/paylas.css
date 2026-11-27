@@ -1,0 +1,60 @@
+/* Dışarıda — okul/kreş grubu paylaşım kartı */
+.btn-gruba{
+  display:flex;width:100%;justify-content:center;align-items:center;gap:8px;
+  background:var(--rust);color:#fff;border:0;border-radius:999px;
+  font:600 14px var(--sans);padding:12px 18px;cursor:pointer;
+  margin:4px 0 14px;box-shadow:0 6px 16px rgba(176,80,42,.22);
+}
+.btn-gruba:hover{filter:brightness(.96)}
+.btn-gruba:active{transform:scale(.99)}
+.btn-gruba .ico{flex:none}
+.btn-gruba span{line-height:1.2}
+.btn-gruba small{display:block;font:500 11px var(--sans);opacity:.85;letter-spacing:.02em;font-weight:500}
+
+.paylas-wrap{
+  position:fixed;inset:0;background:rgba(44,36,29,.42);display:flex;align-items:center;justify-content:center;
+  z-index:60;backdrop-filter:blur(2px);padding:16px;
+}
+.paylas-dlg{
+  position:relative;width:min(440px,100%);max-height:min(92vh,820px);
+  background:var(--paper2);border:1px solid var(--line);border-radius:20px;
+  box-shadow:0 24px 60px rgba(44,36,29,.3);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.paylas-dlg .paylas-x{
+  position:absolute;right:12px;top:12px;border:0;background:none;color:var(--ink2);
+  width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.paylas-dlg .paylas-x:hover{background:rgba(142,59,28,.08);color:var(--rust)}
+.paylas-hd{padding:22px 28px 8px;text-align:center}
+.paylas-hd .kicker{font-size:10.5px;letter-spacing:.34em;color:var(--rust);font-weight:600}
+.paylas-hd h2{font-family:var(--serif);font-size:28px;font-weight:600;line-height:1.1;margin:6px 0 6px;color:var(--ink)}
+.paylas-hd p{margin:0;font-size:13px;color:var(--ink2);line-height:1.4}
+.paylas-body{padding:8px 22px 10px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.paylas-kart-onizleme{
+  align-self:center;width:min(280px,100%);border-radius:8px;border:1px solid var(--line);
+  box-shadow:0 8px 20px rgba(60,40,20,.12);background:var(--paper);display:block;
+}
+.paylas-metin{
+  margin:0;white-space:pre-wrap;word-break:break-word;
+  background:var(--paper);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;font:500 13px/1.45 var(--sans);color:var(--ink);
+}
+.paylas-act{display:flex;flex-wrap:wrap;gap:8px;padding:8px 22px 20px}
+.paylas-act .btn{cursor:pointer;background:#fff;text-align:center;flex:1 1 140px;border-radius:999px}
+.paylas-act .btn.fill{background:var(--rust);color:#fff;border-color:var(--rust)}
+.paylas-act .btn.wa{border-color:#1f8f4e;color:#1f8f4e}
+.paylas-toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  background:var(--ink);color:#fff;font:600 13px var(--sans);padding:10px 16px;border-radius:999px;
+  z-index:70;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.paylas-toast.on{opacity:1}
+.paylas-uyari{margin:0 22px 8px;font-size:12.5px;color:var(--ink2);text-align:center}
+
+@media (max-width:900px){
+  .paylas-wrap{align-items:flex-end;padding:0}
+  .paylas-dlg{width:100%;max-height:92vh;border-radius:18px 18px 0 0}
+  .paylas-kart-onizleme{width:min(220px,72%)}
+  .btn-gruba{padding:13px 18px;font-size:15px}
+}

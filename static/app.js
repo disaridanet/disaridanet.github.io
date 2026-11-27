@@ -377,8 +377,10 @@ map.on('load', async () => {
   [...PL_LAYERS,'cl','pt'].forEach(l => { map.on('mouseenter',l,()=>{map.getCanvas().style.cursor='pointer'; hideTip();}); map.on('mouseleave',l,()=>map.getCanvas().style.cursor=''); });
   map.fitBounds(CITY_B, {padding:{top:60,bottom:40,left:30,right:30}, duration:0});
   render(); labelVis(); initVitrin();
-  if (!LS.get('welcomed', false)) openHomeDialog(true);
+  if (window.DisaridaUcretsiz) DisaridaUcretsiz.attach();
+  if (!LS.get('welcomed', false) && !new URLSearchParams(location.search).get('e') && new URLSearchParams(location.search).get('liste') !== 'ucretsiz-haftasonu') openHomeDialog(true);
   window.__ready = true;
+  if (window.__paylas) window.__paylas.onReady();
 });
 
 function labelVis(){
@@ -533,6 +535,7 @@ function renderPlace(p){
   $('#panel-body').querySelectorAll('.row').forEach(r => r.onclick = () => { S.placeDetail=null; openDetail(+r.dataset.id); });
   bindFavs($('#panel-body'));
   $('#panel-body').scrollTop = 0;
+  if (window.__yorumlar) window.__yorumlar.onPlace(p);
   foot();
 }
 function inAreaP(p){
@@ -754,6 +757,8 @@ function renderDetail(e){
     ${e.ticket_url ? '' : '<p class="psub" style="margin-top:6px">Bilet bağlantısı: Bilgi bulunamadı</p>'}`;
   $('#panel-body').innerHTML = body; $('#panel-body').scrollTop = 0;
   $('#d-ics').onclick = () => downloadIcs(e);
+  if (window.__paylas) window.__paylas.onDetail(e);
+  if (window.__yorumlar) window.__yorumlar.onEvent(e);
   foot();
 }
 function renderChips(){
@@ -1092,6 +1097,6 @@ async function setMapFs(on){
 document.addEventListener('fullscreenchange', () => { if (!browserFsEl() && S.mapFs) setMapFs(false); else if (S.mapFs) resizeMap(); });
 document.addEventListener('webkitfullscreenchange', () => { if (!browserFsEl() && S.mapFs) setMapFs(false); else if (S.mapFs) resizeMap(); });
 $('#btn-fs').onclick = () => { setMapFs(!S.mapFs); };
-setInterval(async () => { try { const d = await getJSON(URLS.events, true); if (d.generated_at !== S.data.generated_at) { const keep = S.detail?.id; setData(d); if (keep) S.detail = S.events.find(e=>e.id===keep)||null; render(); renderVitrin(); } } catch(_){} }, 10*60*1000);
+setInterval(async () => { try { const d = await getJSON(URLS.events, true); if (d.generated_at !== S.data.generated_at) { const keep = S.detail?.id; setData(d); if (keep) S.detail = S.events.find(e=>e.id===keep)||null; render(); renderVitrin(); if (window.DisaridaUcretsiz) DisaridaUcretsiz.refresh(); } } catch(_){} }, 10*60*1000);
 window.__home = openHomeDialog; window.__S = S; window.__go = go; window.__open = openDetail; window.__place = openPlace; window.__map = map; window.__setMapFs = setMapFs;
 })();

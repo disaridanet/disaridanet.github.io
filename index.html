@@ -29,6 +29,10 @@
 <link rel="stylesheet" href="static/vendor/fonts/fonts.css">
 <link rel="stylesheet" href="static/vendor/maplibre-gl.css">
 <link rel="stylesheet" href="static/styles.css?v=02c26ab73f">
+<link rel="stylesheet" href="static/planlayici.css?v=35e68111a0">
+<link rel="stylesheet" href="static/paylas.css?v=1d56cf14bf">
+<link rel="stylesheet" href="static/ucretsiz.css?v=644220a776">
+<link rel="stylesheet" href="static/yorumlar.css?v=0fbcbf45f9">
 </head>
 <body>
 <div id="map" aria-label="Dışarıda — İstanbul etkinlik ve yer haritası"></div>
@@ -46,6 +50,7 @@
 
 <div class="map-tools">
   <button id="btn-vitrin" hidden aria-expanded="false" aria-controls="vitrin"></button>
+  <button type="button" id="btn-ucretsiz" title="Ücretsiz bu hafta sonu etkinlikleri" aria-controls="ucretsiz" aria-expanded="false"><span class="lf">Ücretsiz hafta sonu</span><span class="ls">Ücretsiz</span></button>
   <button id="btn-legend" aria-controls="legend" aria-expanded="true" title="Etkinlik kategorileri ve yer katmanları">Katmanlar</button>
   <button id="btn-fav" title="Favori etkinlik ve yerleriniz">Favorilerim</button>
   <button id="btn-home" title="Ev konumunuzu seçin">Ev seç</button>
@@ -54,6 +59,8 @@
 <div class="legend" id="legend"></div>
 
 <section class="vitrin" id="vitrin" hidden aria-label="Şehirde öne çıkan etkinlikler"></section>
+
+<div id="ucretsiz" hidden></div>
 
 <div id="tip" class="tip" hidden></div>
 <div id="pickbar" class="pickbar" hidden>Haritada evinizin yerine tıklayın <button id="pickbar-x">Vazgeç</button></div>
@@ -73,7 +80,11 @@
 
 <script src="static/vendor/maplibre-gl.js"></script>
 <script src="static/icons.js?v=1a99509334"></script>
-<script src="static/app.js?v=417b5e6c7b"></script>
+<script src="static/app.js?v=58e82cb207"></script>
+<script src="static/planlayici.js?v=30b678cfe5"></script>
+<script src="static/paylas.js?v=c868cb5adb"></script>
+<script src="static/ucretsiz.js?v=95a992bb9b"></script>
+<script src="static/yorumlar.js?v=192fc87930"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
