@@ -376,7 +376,7 @@ map.on('load', async () => {
   });
   [...PL_LAYERS,'cl','pt'].forEach(l => { map.on('mouseenter',l,()=>{map.getCanvas().style.cursor='pointer'; hideTip();}); map.on('mouseleave',l,()=>map.getCanvas().style.cursor=''); });
   map.fitBounds(CITY_B, {padding:{top:60,bottom:40,left:30,right:30}, duration:0});
-  render(); labelVis();
+  render(); labelVis(); initVitrin();
   if (!LS.get('welcomed', false)) openHomeDialog(true);
   window.__ready = true;
 });
@@ -540,6 +540,69 @@ function inAreaP(p){
   if (S.level==='district') return p.district===S.district;
   return false;
 }
+
+/* ---------- vitrin: "Şehirde öne çıkanlar" (bilet koçanı kartlı şerit) ----------
+   Liste data/one_cikanlar.json'dan gelir (payload.featured); rozetler gerçek tarih/ücret verisinden üretilir.
+   Açılışta günde bir kez görünür; ✕ ile kapanınca araç satırında "Öne çıkanlar" düğmesine dönüşür, tekrar açılabilir. */
+const VT_PAL = [['#b0502a','#7a2f14'],['#4f7f3a','#2a4a22'],['#c98a2e','#85501a'],['#7d5a8c','#43284f'],['#4f6f8f','#25384f']];   // site paleti: kiremit, yeşil, hardal, mor, mavi
+const daysTo = (a, b) => Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00')) / 864e5);
+function vitrinBadge(e, over){
+  if (over) return over;
+  const t = S.data.today, last = e.end_date || e.start_date, multi = last !== e.start_date;
+  const toStart = daysTo(t, e.start_date), toEnd = daysTo(t, last);
+  if (toStart > 0) return toStart === 1 ? (multi ? 'Yarın Başlıyor' : 'Yarın') : (toStart <= 14 ? 'Yakında' : null);
+  if (!multi) return 'Bugün';
+  return toEnd === 0 ? 'Son Gün' : toEnd <= 2 ? 'Son Günler' : 'Devam Ediyor';
+}
+function vitrinItems(){
+  const byId = new Map(S.events.map(e => [e.id, e])), out = [];
+  for (const it of (S.data.featured || [])) {
+    const e = (it.ids || []).map(i => byId.get(i)).find(Boolean);   // tarihi geçen kayıt düşer, aynı başlıklı sonraki devralır
+    if (e && !out.some(o => o.e.id === e.id)) out.push({e, over: it.rozet, img: e.image || it.gorsel || null});
+  }
+  return out.slice(0, 5);
+}
+function vitrinCard(e, i){   // i: sıra (0'dan); her numaraya farklı renk
+  const [c1, c2] = VT_PAL[(i || 0) % VT_PAL.length];
+  const loc = [e.district, e.venue].filter(Boolean)[0] || '';
+  return `<span class="vt-card" style="background:linear-gradient(165deg,${c1},${c2})"><span class="vt-ic">${ico(CAT_ICON[e.cat_group]||'sparkles','#fff',120)}</span><span class="vt-k">${esc((e.cat_label||'').toLocaleUpperCase('tr'))}</span><span class="vt-t">${esc(nice(e.title))}</span><span class="vt-l">${esc(loc)}</span></span>`;
+}
+function renderVitrin(){
+  const el = $('#vitrin'), btn = $('#btn-vitrin'); if (!el || !btn) return;
+  const items = vitrinItems(), n = items.length;
+  S.vitrinN = n;
+  if (!n) { el.hidden = true; btn.hidden = true; document.body.classList.remove('vitrin-open'); return; }
+  el.innerHTML = `<div class="vt-head"><div class="vt-kick">DIŞARIDA · SEÇKİLER</div><h2 class="vt-title">Şehirde öne çıkanlar</h2><span class="vt-sub">${n} seçme etkinlik · kaydırın →</span>
+      <button type="button" class="vt-x" id="vt-x" aria-label="Vitrini kapat" title="Kapat">${ico('x','currentColor',16)}</button></div>
+    <div class="vt-wrap"><div class="vt-strip" id="vt-strip" role="list">${items.map((o, i) => {
+      const e = o.e, b = vitrinBadge(e, o.over), free = e.is_free === 1 && b !== 'Ücretsiz';
+      return `<button type="button" class="vt-item" role="listitem" data-id="${e.id}" aria-label="${i+1}. ${esc(nice(e.title))}${b ? ', ' + esc(b) : ''}">
+        <span class="vt-num" aria-hidden="true">${i+1}</span>
+        <span class="vt-tk"><span class="vt-poster">${o.img ? `<img src="${esc(o.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-fb="${e.id}" data-i="${i}">` : vitrinCard(e, i)}<span class="vt-tags">${b ? `<span class="vt-badge">${esc(b)}</span>` : ''}${free ? '<span class="vt-free">Ücretsiz</span>' : ''}</span></span>
+        <span class="vt-perf" aria-hidden="true"></span>
+        <span class="vt-cap"><b>${esc(nice(e.title))}</b><i class="vt-w">${esc(when(e))}</i><i class="vt-d">${esc(e.district || '')}</i></span></span></button>`; }).join('')}</div></div>`;
+  el.querySelectorAll('img[data-fb]').forEach(im => im.addEventListener('error', () => {   // afiş yüklenemezse başlık kartı
+    const e = S.events.find(x => x.id === +im.dataset.fb); if (e) im.outerHTML = vitrinCard(e, +im.dataset.i); }, {once:true}));
+  el.querySelectorAll('.vt-item').forEach(b => b.onclick = () => { setVitrin(false); openDetail(+b.dataset.id); });
+  $('#vt-x').onclick = () => setVitrin(false);
+  btn.innerHTML = `${ico('trophy','currentColor',13)}<span class="lf">Öne çıkanlar</span><span class="ls">Seçkiler</span>`;
+  btn.title = 'Şehirde öne çıkan etkinlikleri aç';
+  setVitrin(S.vitrinOpen, true);
+}
+function setVitrin(open, quiet){
+  const el = $('#vitrin'), btn = $('#btn-vitrin'); if (!el || !btn || !S.vitrinN) return;
+  S.vitrinOpen = open;
+  el.hidden = !open; btn.hidden = open; btn.setAttribute('aria-expanded', String(open));
+  document.body.classList.toggle('vitrin-open', open);
+  if (!quiet) LS.set('vitrin', {d: S.data.today, kapali: !open});
+  if (open && !quiet) $('#vt-strip')?.scrollTo({left:0});
+}
+function initVitrin(){
+  const v = LS.get('vitrin', null);
+  S.vitrinOpen = !(v && v.d === S.data.today && v.kapali);   // günde bir kez açık başlar; kapatılırsa o gün küçük düğme olarak kalır
+  renderVitrin();
+}
+$('#btn-vitrin').onclick = () => setVitrin(true);
 
 /* ---------- render ---------- */
 function setData(d){
@@ -972,6 +1035,7 @@ $('#btn-fav').onclick = () => { S.view = S.view==='favs' ? null : 'favs'; S.deta
 document.addEventListener('click', ev => { const b = ev.target.closest('[data-act="home"]'); if (b) { ev.preventDefault(); openHomeDialog(); } });
 document.addEventListener('keydown', ev => { if (ev.key==='Escape') {
   if (!$('#homedlg').hidden && LS.get('welcomed', false)) closeHomeDialog();
+  else if (S.vitrinOpen && !$('#vitrin').hidden) setVitrin(false);
   else if (S.pop) { S.pop=null; render(); }
   else if (S.pickHome) stopPick();
   else if (S.mapFs && (S.detail || S.placeDetail || S.venue)) {
@@ -1028,6 +1092,6 @@ async function setMapFs(on){
 document.addEventListener('fullscreenchange', () => { if (!browserFsEl() && S.mapFs) setMapFs(false); else if (S.mapFs) resizeMap(); });
 document.addEventListener('webkitfullscreenchange', () => { if (!browserFsEl() && S.mapFs) setMapFs(false); else if (S.mapFs) resizeMap(); });
 $('#btn-fs').onclick = () => { setMapFs(!S.mapFs); };
-setInterval(async () => { try { const d = await getJSON(URLS.events, true); if (d.generated_at !== S.data.generated_at) { const keep = S.detail?.id; setData(d); if (keep) S.detail = S.events.find(e=>e.id===keep)||null; render(); } } catch(_){} }, 10*60*1000);
+setInterval(async () => { try { const d = await getJSON(URLS.events, true); if (d.generated_at !== S.data.generated_at) { const keep = S.detail?.id; setData(d); if (keep) S.detail = S.events.find(e=>e.id===keep)||null; render(); renderVitrin(); } } catch(_){} }, 10*60*1000);
 window.__home = openHomeDialog; window.__S = S; window.__go = go; window.__open = openDetail; window.__place = openPlace; window.__map = map; window.__setMapFs = setMapFs;
 })();
